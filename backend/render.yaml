@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: lockyourassin-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: CRON_SECRET
+        sync: false
+        value: lockyourassin_secret_123
+      - key: FIREBASE_SERVICE_ACCOUNT
+        sync: false
