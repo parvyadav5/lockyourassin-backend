@@ -442,6 +442,20 @@ button {
   box-shadow: 0 2px 8px rgba(255, 214, 107, 0.3);
 }
 
+.day.missed .check-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--red-pale, #fee2e2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--red, #e74c3c);
+  border: 2px solid var(--red-pale, #fee2e2);
+}
+
 .day.today .day-number,
 .day.upcoming .day-number {
   width: 38px;

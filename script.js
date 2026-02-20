@@ -682,6 +682,10 @@ function initDashboard(user) {
         // Update local
         const idx = parseInt(row.dataset.idx);
         if (allTasks[idx]) allTasks[idx].completed = isDone;
+
+        // Re-calculate the daily widgets
+        renderDailyProgress();
+        renderAnalytics();
       });
     });
   }
@@ -749,6 +753,7 @@ function initDashboard(user) {
       renderTasksPage();
       renderCalendar();
       renderAnalytics();
+      renderDailyProgress();
     } catch (err) {
       console.error('Failed to load tasks:', err);
     }
@@ -863,6 +868,92 @@ function initDashboard(user) {
   });
 
   renderCalendar();
+
+  // =============================================
+  //  DAILY PROGRESS WIDGET
+  // =============================================
+
+  const dayIndicatorsContainer = document.querySelector('.day-indicators');
+
+  function renderDailyProgress() {
+    if (!dayIndicatorsContainer) return;
+
+    dayIndicatorsContainer.innerHTML = '';
+    const now = new Date();
+    // Normalize today to start of day for accurate comparison
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+
+    // Generate last 3 days, today, next 3 days
+    for (let i = -3; i <= 3; i++) {
+      const d = new Date(todayStart);
+      d.setDate(d.getDate() + i);
+
+      const dStart = new Date(d);
+      const dEnd = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+
+      // Find tasks due strictly on this specific day
+      const tasksForDay = allTasks.filter(t => {
+        if (!t.deadline) return false;
+        const tDate = t.deadline.toDate ? t.deadline.toDate() : new Date(t.deadline);
+        return tDate >= dStart && tDate <= dEnd;
+      });
+
+      const dayEl = document.createElement('div');
+      dayEl.className = 'day';
+
+      const numberOrIconSpan = document.createElement('span');
+      const dayLabelSpan = document.createElement('span');
+      dayLabelSpan.className = 'day-label';
+
+      // Set Label
+      if (i === 0) {
+        dayLabelSpan.textContent = 'Today';
+      } else {
+        dayLabelSpan.textContent = days[d.getDay()];
+      }
+
+      if (i < 0) { // Past Day
+        if (tasksForDay.length === 0) {
+          // No tasks? Just show check or cross... Let's just grey dot it, or show check
+          dayEl.classList.add('completed');
+          numberOrIconSpan.className = 'check-icon';
+          numberOrIconSpan.innerHTML = '<span style="color:#aaa;">-</span>'; // Empty past
+        } else {
+          const anyMissed = tasksForDay.some(t => !t.completed);
+          if (anyMissed) {
+            dayEl.classList.add('missed'); // We need CSS for this (.day.missed { color: red })
+            numberOrIconSpan.className = 'check-icon';
+            numberOrIconSpan.innerHTML = '<span style="color:var(--red);">✗</span>';
+          } else {
+            dayEl.classList.add('completed');
+            numberOrIconSpan.className = 'check-icon';
+            numberOrIconSpan.textContent = '✓';
+          }
+        }
+      } else if (i === 0) { // Today
+        dayEl.classList.add('today');
+        numberOrIconSpan.className = 'day-number';
+        numberOrIconSpan.textContent = days[d.getDay()];
+
+        // Optional: If they already finished all today's tasks Show check
+        if (tasksForDay.length > 0 && tasksForDay.every(t => t.completed)) {
+          dayEl.classList.add('completed');
+          numberOrIconSpan.className = 'check-icon';
+          numberOrIconSpan.textContent = '✓';
+        }
+      } else { // Future Day
+        dayEl.classList.add('upcoming');
+        numberOrIconSpan.className = 'day-number';
+        numberOrIconSpan.textContent = days[d.getDay()];
+      }
+
+      dayEl.appendChild(numberOrIconSpan);
+      dayEl.appendChild(dayLabelSpan);
+      dayIndicatorsContainer.appendChild(dayEl);
+    }
+  }
 
   // =============================================
   //  ANALYTICS MODULE
