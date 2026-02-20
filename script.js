@@ -916,10 +916,10 @@ function initDashboard(user) {
 
       if (i < 0) { // Past Day
         if (tasksForDay.length === 0) {
-          // No tasks? Just show check or cross... Let's just grey dot it, or show check
+          // No tasks? Just show check
           dayEl.classList.add('completed');
           numberOrIconSpan.className = 'check-icon';
-          numberOrIconSpan.innerHTML = '<span style="color:#aaa;">-</span>'; // Empty past
+          numberOrIconSpan.textContent = '✓';
         } else {
           const anyMissed = tasksForDay.some(t => !t.completed);
           if (anyMissed) {
