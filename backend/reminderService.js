@@ -134,8 +134,16 @@ async function runReminderChecks() {
             if (isDailyRun) {
                 // 7-Day Alert
                 if (daysLeft === 7 && !task.notified7day) {
-                    await sendReminderEmail(userEmail, task, daysLeft, 'daily', motivMsg);
-                    await sendPush(task.userId, task, daysLeft, 'daily', motivMsg);
+                    try {
+                        await sendReminderEmail(userEmail, task, daysLeft, 'daily', motivMsg);
+                    } catch (err) {
+                        console.error(`Failed to send 7-day email for task ${taskId}:`, err.message);
+                    }
+                    try {
+                        await sendPush(task.userId, task, daysLeft, 'daily', motivMsg);
+                    } catch (err) {
+                        console.error(`Failed to send 7-day push for task ${taskId}:`, err.message);
+                    }
                     await db.collection('tasks').doc(taskId).update({
                         notified7day: true,
                         lastReminderSent: admin.firestore.FieldValue.serverTimestamp()
@@ -153,8 +161,17 @@ async function runReminderChecks() {
                         if (diffHours < 20) { stats.skipped++; continue; }
                     }
 
-                    await sendReminderEmail(userEmail, task, daysLeft, 'daily', motivMsg);
-                    await sendPush(task.userId, task, daysLeft, 'daily', motivMsg);
+                    try {
+                        await sendReminderEmail(userEmail, task, daysLeft, 'daily', motivMsg);
+                    } catch (err) {
+                        console.error(`Failed to send daily email for task ${taskId}:`, err.message);
+                    }
+                    try {
+                        await sendPush(task.userId, task, daysLeft, 'daily', motivMsg);
+                    } catch (err) {
+                        console.error(`Failed to send daily push for task ${taskId}:`, err.message);
+                    }
+
                     await db.collection('tasks').doc(taskId).update({
                         lastReminderSent: admin.firestore.FieldValue.serverTimestamp()
                     });
@@ -174,8 +191,16 @@ async function runReminderChecks() {
                 // Anti-Spam: 2-Hour Window
                 if (wasWithinHours(task.lastReminderSent, 2)) { stats.skipped++; continue; }
 
-                await sendReminderEmail(userEmail, task, daysLeft, 'urgent', motivMsg);
-                await sendPush(task.userId, task, daysLeft, 'urgent', motivMsg);
+                try {
+                    await sendReminderEmail(userEmail, task, daysLeft, 'urgent', motivMsg);
+                } catch (err) {
+                    console.error(`Failed to send urgent email for task ${taskId}:`, err.message);
+                }
+                try {
+                    await sendPush(task.userId, task, daysLeft, 'urgent', motivMsg);
+                } catch (err) {
+                    console.error(`Failed to send urgent push for task ${taskId}:`, err.message);
+                }
 
                 await db.collection('tasks').doc(taskId).update({
                     lastReminderSent: admin.firestore.FieldValue.serverTimestamp(),

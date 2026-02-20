@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
 });
 
 // Trigger Endpoint
-app.get('/run-reminder', async (req, res) => {
+app.get('/run-reminder', (req, res) => {
     const key = req.query.key;
 
     // 1. Validate Secret
@@ -21,17 +21,19 @@ app.get('/run-reminder', async (req, res) => {
         return res.status(403).json({ error: 'Forbidden: Invalid Key' });
     }
 
-    console.log(`[${new Date().toISOString()}] Triggered reminder check...`);
+    console.log(`[${new Date().toISOString()}] Reminder triggered`);
 
-    try {
-        // 2. Run Logic
-        const result = await runReminderChecks();
-        console.log('Result:', result);
-        res.status(200).json(result);
-    } catch (error) {
-        console.error('Execution Error:', error);
-        res.status(500).json({ error: 'Internal Server Error', details: error.message });
-    }
+    // 2. Respond immediately to prevent timeout/hanging
+    res.status(200).send("Reminder job started");
+
+    // 3. Run Logic in Background
+    runReminderChecks()
+        .then(result => {
+            console.log(`[${new Date().toISOString()}] Reminder finished successfully. Result:`, result);
+        })
+        .catch(error => {
+            console.error(`[${new Date().toISOString()}] Background reminder error:`, error);
+        });
 });
 
 app.listen(PORT, () => {

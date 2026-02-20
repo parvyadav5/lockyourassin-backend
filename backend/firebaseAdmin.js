@@ -27,7 +27,18 @@ try {
     console.error('   Ensure FIREBASE_SERVICE_ACCOUNT env var is set or serviceAccountKey.json exists.');
 }
 
-const db = admin.firestore();
-const messaging = admin.messaging();
+const db = {
+    collection: (name) => {
+        if (!admin.apps.length) throw new Error("Firebase Admin not initialized.");
+        return admin.firestore().collection(name);
+    }
+};
+
+const messaging = {
+    sendEachForMulticast: (message) => {
+        if (!admin.apps.length) throw new Error("Firebase Admin not initialized.");
+        return admin.messaging().sendEachForMulticast(message);
+    }
+};
 
 module.exports = { admin, db, messaging };
